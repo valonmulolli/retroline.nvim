@@ -170,6 +170,9 @@ function M.render()
   local winid = target_winid()
   ---@type integer
   local bufnr = vim.api.nvim_win_get_buf(winid)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return ""
+  end
   ---@type retroline.Config
   local config = state.runtime.config
   ---@type retroline.StatuslineOpts
