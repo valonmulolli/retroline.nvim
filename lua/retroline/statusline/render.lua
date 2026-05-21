@@ -179,6 +179,7 @@ function M.render()
   local opts = config.statusline
   if opts == nil then
     opts = options.normalize_opts(nil)
+    config.statusline = opts
   end
   ---@type string
   local filetype = vim.bo[bufnr].filetype
