@@ -255,13 +255,14 @@ function M.render()
   local location = ""
   if opts.show_location then
     if layout == "minimal" then
-      location = opts.retro and style.retro_chip(retro_segment_text("LINE", "%l", layout)) or "%l"
+      location = opts.retro and style.retro_chip(retro_segment_text("LINE", "%l", layout))
+        or style.wrap("RetrolineMuted", "%l")
     else
       ---@type string
       local location_label = layout == "full" and "POS" or "LINE"
       location = opts.retro
         and style.retro_chip(retro_segment_text(location_label, "%l:%c", layout))
-        or "%l:%c"
+        or style.wrap("RetrolineMuted", "%l:%c")
     end
   end
 
