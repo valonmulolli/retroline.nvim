@@ -302,6 +302,8 @@ for _, item in ipairs(tests) do
   local ok, err = pcall(item.fn)
   pcall(function()
     retroline.disable_statusline()
+    vim.go.statusline = ""
+    vim.opt.laststatus = 2
   end)
   if ok then
     passed = passed + 1
