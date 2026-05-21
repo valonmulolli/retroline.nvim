@@ -45,9 +45,6 @@ function M.should_animate()
   if #vim.api.nvim_list_uis() == 0 then
     return false
   end
-  if contains(vim.bo.filetype, config.skip_filetypes) then
-    return false
-  end
   return true
 end
 
