@@ -88,7 +88,7 @@ end
 ---@return nil
 local function tick()
   if should_tick() == false then
-    if state.runtime.config.performance.stop_timer_on_idle then
+    if state.runtime.config.performance.stop_timer_on_idle or animations.should_animate() == false then
       stop_timer()
     end
     return
