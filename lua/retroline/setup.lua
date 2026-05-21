@@ -87,7 +87,6 @@ local function apply_retro_defaults(merged, opts)
     local preset = state.animations.retro_scan
     if preset ~= nil then
       merged.animation = "retro_scan"
-      merged.frames = vim.deepcopy(preset.frames)
       if opts == nil or type(opts.interval) ~= "number" then
         merged.interval = preset.interval
       end
