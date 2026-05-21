@@ -1,0 +1,5 @@
+*.lua linguist-language=Lua
+*.md linguist-detectable=false
+*.png linguist-detectable=false
+.gitignore linguist-detectable=false
+.gitattributes linguist-detectable=false
