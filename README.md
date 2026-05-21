@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="logo.png" alt="retroline.nvim" width="55%" height="auto">
-</p>
-
 <h1 align="center">retroline.nvim</h1>
 
 <p align="center">
@@ -10,7 +6,7 @@
 
 <p align="center">
   <a href="https://neovim.io">
-    <img src="https://img.shields.io/badge/Neovim-0.10+-57A143?logo=neovim&logoColor=white&style=flat" alt="Neovim">
+    <img src="https://img.shields.io/badge/Neovim-0.12+-57A143?style=flat" alt="Neovim">
   </a>
   <a href="https://github.com/valonmulolli/retroline.nvim">
     <img src="https://img.shields.io/github/license/valonmulolli/retroline.nvim?style=flat&color=blue" alt="License">
