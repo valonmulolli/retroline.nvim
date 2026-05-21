@@ -9,7 +9,7 @@
     <img src="https://img.shields.io/badge/Neovim-0.12+-57A143?style=flat" alt="Neovim">
   </a>
   <a href="https://github.com/valonmulolli/retroline.nvim">
-    <img src="https://img.shields.io/github/license/valonmulolli/retroline.nvim?style=flat&color=blue" alt="License">
+    <img src="https://img.shields.io/badge/license-MIT-blue?style=flat" alt="MIT">
   </a>
 </p>
 
