@@ -8,6 +8,12 @@
   <strong>Animated statusline for Neovim</strong><br>
 </p>
 
+<p align="center">
+  <a href="https://neovim.io">
+    <img src="https://img.shields.io/badge/Neovim-0.10+-57A143?logo=neovim&logoColor=white&style=flat" alt="Neovim">
+  </a>
+</p>
+
 ---
 
 ## Features
