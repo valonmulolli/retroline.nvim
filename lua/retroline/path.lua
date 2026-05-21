@@ -64,6 +64,11 @@ local function path_prefix(path)
   if vim.startswith(path, "/") then
     return "/"
   end
+  ---@type string|nil
+  local drive = path:match("^([A-Za-z]:[/\\])")
+  if drive ~= nil then
+    return drive
+  end
   return ""
 end
 
