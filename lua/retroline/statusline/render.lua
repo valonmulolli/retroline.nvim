@@ -301,7 +301,7 @@ function M.render()
     opts.pad,
   })
 
-  if layout == "full" and anim ~= "" then
+  if layout == "full" then
     return left .. "%=" .. anim .. "%=" .. right
   end
   return left .. "%=" .. right
