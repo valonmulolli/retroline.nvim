@@ -240,7 +240,7 @@ function M.render()
   ---@type string
   local diagnostics_block = diagnostics_for_layout(config, layout, bufnr)
   if diagnostics_block ~= "" then
-    if opts.retro and layout ~= "full" and config.diagnostic.animation ~= "retro_alarm" then
+    if opts.retro and layout ~= "full" and diagnostics_block:sub(1, 1) ~= "[" then
       diagnostics_block = style.wrap("RetrolineMuted", opts.pad .. "[") .. diagnostics_block
         .. style.wrap("RetrolineMuted", "]")
     else
