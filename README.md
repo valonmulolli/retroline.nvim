@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="retroline.nvim" width="35%" height="auto">
+  <img src="logo.png" alt="retroline.nvim" width="55%" height="auto">
 </p>
 
 <h1 align="center">retroline.nvim</h1>
