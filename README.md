@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/retroline-logo.png" alt="retroline.nvim statusline preview" width="900">
-</p>
-
 <h1 align="center">retroline.nvim</h1>
 
 <p align="center">

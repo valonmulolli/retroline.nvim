@@ -276,13 +276,19 @@ end)
 test("retro setup preserves user frames when explicitly provided", function()
   retroline.setup({
     frames = { ">>>", "<<<" },
+    animation = "line",
     statusline = {
       retro = true,
     },
   })
 
-  assert_eq(state.runtime.config.animation, "retro_scan", "retro mode should set animation name even with custom frames")
+  assert_eq(
+    state.runtime.config.animation,
+    "line",
+    "user-provided animation name should be preserved in retro mode"
+  )
   assert_eq(state.runtime.config.frames[1], ">>>", "user-provided frames should not be overwritten by retro preset")
+  assert_eq(state.runtime.config.mode.animation, "retro_cursor", "retro mode animation defaults should still apply")
 end)
 
 test("retro minimal layout keeps labeled chips", function()
