@@ -69,7 +69,9 @@ local my_statusline = function()
     retroline.diagnostic_component(),
   })
 end
-vim.o.statusline = "%!v:lua.vim.api.nvim_eval_statusline(vim.o.statusline, {})"
+-- Then set statusline to evaluate your custom function
+vim.g.my_statusline = my_statusline
+vim.o.statusline = "%!v:lua.vim.g.my_statusline()"
 ```
 
 ### Sidebar buffers
@@ -108,9 +110,9 @@ require("retroline").next_diagnostic_animation()
 | `enable_statusline()` / `disable_statusline()`                    | `nil`               | Built-in statusline toggle       |
 | `set_animation(name)` / `next_animation()`                        | `boolean`/`string`  | Cycle status animation           |
 | `current_animation()` / `list_animations()`                       | `string`/`string[]` | Query status animation           |
-| `set_mode_animation(name)` / `next_mode_animation()`              | `string`            | Cycle mode animation             |
+| `set_mode_animation(name)` / `next_mode_animation()`              | `boolean`/`string`  | Cycle mode animation             |
 | `current_mode_animation()` / `list_mode_animations()`             | `string`/`string[]` | Query mode animation             |
-| `set_diagnostic_animation(name)` / `next_diagnostic_animation()`  | `string`            | Cycle diagnostic animation       |
+| `set_diagnostic_animation(name)` / `next_diagnostic_animation()`  | `boolean`/`string`  | Cycle diagnostic animation       |
 | `current_diagnostic_animation()` / `list_diagnostic_animations()` | `string`/`string[]` | Query diagnostic animation       |
 
 ---
