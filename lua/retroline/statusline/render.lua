@@ -186,6 +186,9 @@ function M.render()
   if options.is_sidebar(opts, filetype) then
     return sidebar_statusline(opts, filetype)
   end
+  if not vim.api.nvim_win_is_valid(winid) then
+    return ""
+  end
   ---@type integer
   local width = vim.api.nvim_win_get_width(winid)
   ---@type string
