@@ -172,14 +172,17 @@ end
 ---@param opts? retroline.ModeOpts
 ---@return string
 function M.component(opts)
-	---@type retroline.ModeOpts
-	local merged = state.runtime.config.mode
-	if opts ~= nil then
-		merged = M.normalize_opts(vim.tbl_deep_extend("force", vim.deepcopy(state.runtime.config.mode), opts))
-	end
+  ---@type retroline.ModeOpts
+  local merged = state.runtime.config.mode
+  if opts ~= nil then
+    merged = M.normalize_opts(vim.tbl_deep_extend("force", vim.deepcopy(state.runtime.config.mode), opts))
+  end
 
-	---@type string
-	local raw_mode = M.current_mode()
+  ---@type string
+  local raw_mode = M.current_mode()
+  if opts ~= nil and type(opts._raw) == "string" then
+    raw_mode = opts._raw
+  end
 	---@type string
 	local label = resolve_mode_label(merged.style, raw_mode)
 	if merged.animate == false then

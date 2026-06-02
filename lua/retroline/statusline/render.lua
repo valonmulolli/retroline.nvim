@@ -148,15 +148,17 @@ end
 ---@param layout string
 ---@return string
 local function mode_for_layout(opts, left_delim, right_delim, layout)
+  ---@type string
+  local raw_mode = mode.current_mode()
   ---@type retroline.ModeOpts|nil
   local mode_opts = nil
   if layout == "minimal" then
-    mode_opts = { style = "short", animate = false, animation = "spin", separator = "" }
+    mode_opts = { style = "short", animate = false, animation = "spin", separator = "", _raw = raw_mode }
   end
   ---@type string
   local mode_text = mode.component(mode_opts)
   ---@type string
-  local mode_group = highlights.mode_group(mode.current_mode())
+  local mode_group = highlights.mode_group(raw_mode)
   if opts.retro then
     mode_text = retro_segment_text("MODE", mode_text, layout)
     return highlights.wrap(mode_group, style.retro_chip(mode_text))
