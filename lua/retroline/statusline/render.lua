@@ -56,7 +56,7 @@ local function sidebar_statusline(opts, filetype)
   ---@type string
   local chip_text = opts.retro and style.retro_chip(label) or label
   ---@type string
-  local left = style.wrap("RetrolineMuted", opts.pad .. chip_text .. opts.pad)
+  local left = style.wrap("RetrolineMuted", "%<" .. opts.pad .. chip_text .. opts.pad)
   return left .. "%="
 end
 
