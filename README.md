@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/retroline-logo.png" alt="retroline.nvim statusline preview" width="900">
+</p>
+
 <h1 align="center">retroline.nvim</h1>
 
 <p align="center">
@@ -47,21 +51,6 @@
 }
 ```
 
-### vim.pack (Neovim 0.12+)
-
-```lua
-vim.pack.add({
-  {
-    src = "https://github.com/valonmulolli/retroline.nvim",
-    name = "retroline.nvim",
-  },
-})
-
-require("retroline").setup({
-  animation = "orbit",
-})
-```
-
 ---
 
 ## Usage
@@ -83,6 +72,12 @@ end
 vim.o.statusline = "%!v:lua.vim.api.nvim_eval_statusline(vim.o.statusline, {})"
 ```
 
+### Sidebar buffers
+
+Configured `sidebar_filetypes` (neo-tree, oil, qf, etc.) replace the entire statusline with a simple centered label instead of the full layout. No mode, path, diagnostics, or context segments are shown. This keeps sidebar windows clean and uncluttered.
+
+You can customize the label text via `sidebar_labels` or disable the behavior with `sidebar_minimal = false` to show the normal statusline in sidebar buffers.
+
 ### Cycle animations at runtime
 
 ```lua
@@ -100,23 +95,23 @@ require("retroline").next_diagnostic_animation()
 
 ## API
 
-| Method | Returns | Description |
-|---|---|---|
-| `setup(opts)` | `nil` | Configure retroline |
-| `start()` / `stop()` / `toggle()` | `nil` | Timer lifecycle |
-| `is_running()` | `boolean` | Check if timer is active |
-| `component()` | `string` | Current animation frame |
-| `mode_component(opts?)` | `string` | Animated mode label |
-| `path_component(opts?)` | `string` | Formatted file path |
-| `diagnostic_component(opts?)` | `string` | Diagnostic counts with animation |
-| `statusline()` | `string` | Full rendered statusline |
-| `enable_statusline()` / `disable_statusline()` | `nil` | Built-in statusline toggle |
-| `set_animation(name)` / `next_animation()` | `string` | Cycle status animation |
-| `current_animation()` / `list_animations()` | `string`/`string[]` | Query status animation |
-| `set_mode_animation(name)` / `next_mode_animation()` | `string` | Cycle mode animation |
-| `current_mode_animation()` / `list_mode_animations()` | `string`/`string[]` | Query mode animation |
-| `set_diagnostic_animation(name)` / `next_diagnostic_animation()` | `string` | Cycle diagnostic animation |
-| `current_diagnostic_animation()` / `list_diagnostic_animations()` | `string`/`string[]` | Query diagnostic animation |
+| Method                                                            | Returns             | Description                      |
+| ----------------------------------------------------------------- | ------------------- | -------------------------------- |
+| `setup(opts)`                                                     | `nil`               | Configure retroline              |
+| `start()` / `stop()` / `toggle()`                                 | `nil`               | Timer lifecycle                  |
+| `is_running()`                                                    | `boolean`           | Check if timer is active         |
+| `component()`                                                     | `string`            | Current animation frame          |
+| `mode_component(opts?)`                                           | `string`            | Animated mode label              |
+| `path_component(opts?)`                                           | `string`            | Formatted file path              |
+| `diagnostic_component(opts?)`                                     | `string`            | Diagnostic counts with animation |
+| `statusline()`                                                    | `string`            | Full rendered statusline         |
+| `enable_statusline()` / `disable_statusline()`                    | `nil`               | Built-in statusline toggle       |
+| `set_animation(name)` / `next_animation()`                        | `boolean`/`string`  | Cycle status animation           |
+| `current_animation()` / `list_animations()`                       | `string`/`string[]` | Query status animation           |
+| `set_mode_animation(name)` / `next_mode_animation()`              | `string`            | Cycle mode animation             |
+| `current_mode_animation()` / `list_mode_animations()`             | `string`/`string[]` | Query mode animation             |
+| `set_diagnostic_animation(name)` / `next_diagnostic_animation()`  | `string`            | Cycle diagnostic animation       |
+| `current_diagnostic_animation()` / `list_diagnostic_animations()` | `string`/`string[]` | Query diagnostic animation       |
 
 ---
 
