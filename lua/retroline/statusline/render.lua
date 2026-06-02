@@ -278,7 +278,7 @@ function M.render()
     local progress_label = layout == "full" and "TOP" or "PCT"
     progress = opts.retro
       and style.retro_chip(retro_segment_text(progress_label, "%p%%", layout))
-      or "%p%%"
+      or style.wrap("RetrolineMuted", "%p%%")
   end
 
   ---@type string
