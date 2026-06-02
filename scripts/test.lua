@@ -273,6 +273,18 @@ test("retro layout keeps compact mode longer", function()
   assert_eq(options.resolve_layout(opts, 60), "minimal", "retro layout should still collapse when very narrow")
 end)
 
+test("retro setup preserves user frames when explicitly provided", function()
+  retroline.setup({
+    frames = { ">>>", "<<<" },
+    statusline = {
+      retro = true,
+    },
+  })
+
+  assert_eq(state.runtime.config.animation, "retro_scan", "retro mode should set animation name even with custom frames")
+  assert_eq(state.runtime.config.frames[1], ">>>", "user-provided frames should not be overwritten by retro preset")
+end)
+
 test("retro minimal layout keeps labeled chips", function()
   retroline.setup({
     statusline = {
