@@ -227,7 +227,7 @@ function M.render()
   ---@type string
   local flags = ""
   if opts.show_flags and layout == "full" then
-    flags = style.wrap("RetrolineMuted", "%h%m%r")
+    flags = style.wrap("RetrolineMuted", "%h%w%m%r")
   end
 
   ---@type string
