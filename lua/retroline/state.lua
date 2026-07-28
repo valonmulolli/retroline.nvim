@@ -386,7 +386,7 @@ M.defaults = {
 
 ---@type retroline.RuntimeState
 M.runtime = {
-  config = vim.deepcopy(M.defaults),
+  config = {}, -- populated by setup()
   frame_index = 1,
   timer = nil,
   running = false,

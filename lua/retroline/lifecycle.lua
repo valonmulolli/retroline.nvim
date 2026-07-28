@@ -11,33 +11,18 @@
 local state = require("retroline.state")
 ---@type retroline.AnimationModule
 local animations = require("retroline.animations")
+---@type retroline.UtilModule
+local util = require("retroline.util")
 
 ---@type retroline.LifecycleModule
 local M = {}
-
----@return integer
-local function now_ms()
-  ---@type table<string, any>|nil
-  local uv = vim.uv or vim.loop
-  if uv ~= nil and type(uv.now) == "function" then
-    return uv.now()
-  end
-  return math.floor(vim.fn.reltimefloat(vim.fn.reltime()) * 1000)
-end
-
----@param value string
----@param prefix string
----@return boolean
-local function starts_with(value, prefix)
-  return string.sub(value, 1, #prefix) == prefix
-end
 
 ---@param mode string
 ---@param prefixes string[]
 ---@return boolean
 local function is_active_mode(mode, prefixes)
   for _, prefix in ipairs(prefixes) do
-    if starts_with(mode, prefix) then
+    if util.starts_with(mode, prefix) then
       return true
     end
   end
@@ -78,7 +63,7 @@ local function should_tick()
   end
 
   ---@type integer
-  local now = now_ms()
+  local now = util.now_ms()
   if now <= state.runtime.diag_alert_until then
     return true
   end
@@ -113,7 +98,7 @@ end
 ---@return nil
 function M.mark_activity(duration_ms)
   ---@type integer
-  local now = now_ms()
+  local now = util.now_ms()
   state.runtime.last_activity = now
   if type(duration_ms) == "number" and duration_ms > 0 then
     ---@type integer
@@ -141,7 +126,7 @@ function M.mark_diagnostic_alert(severity, duration_ms)
   local pulse = math.floor(duration_ms or state.runtime.config.performance.diagnostic_pulse)
   if pulse > 0 then
     ---@type integer
-    local now = now_ms()
+    local now = util.now_ms()
     state.runtime.diag_alert_until = math.max(state.runtime.diag_alert_until, now + pulse)
   end
   if type(severity) == "string" and severity ~= "" then
@@ -169,7 +154,7 @@ function M.start()
     return
   end
 
-  state.runtime.last_activity = now_ms()
+  state.runtime.last_activity = util.now_ms()
   state.runtime.timer = timer
   state.runtime.running = true
   timer:start(0, state.runtime.config.interval, vim.schedule_wrap(tick))

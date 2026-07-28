@@ -11,6 +11,9 @@
 ---@field enable_statusline fun(): nil
 ---@field disable_statusline fun(): nil
 ---@field is_running fun(): boolean
+---@field add_animation fun(name: string, preset: retroline.AnimationPreset): boolean
+---@field add_mode_animation fun(name: string, frames: string[]): boolean
+---@field add_diagnostic_animation fun(name: string, preset: retroline.DiagnosticAnimationPreset): boolean
 ---@field set_animation fun(name: string, opts?: retroline.SetAnimationOpts): boolean
 ---@field next_animation fun(): string
 ---@field current_animation fun(): string

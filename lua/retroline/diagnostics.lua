@@ -17,6 +17,8 @@
 local state = require("retroline.state")
 ---@type retroline.HighlightsModule
 local highlights = require("retroline.highlights")
+---@type retroline.UtilModule
+local util = require("retroline.util")
 
 ---@type retroline.DiagnosticsModule
 local M = {}
@@ -66,16 +68,6 @@ local severity_map = {
 
 ---@type table<integer, retroline.DiagnosticCounts>
 local cache = {}
-
----@return integer
-local function now_ms()
-  ---@type table<string, any>|nil
-  local uv = vim.uv or vim.loop
-  if uv ~= nil and type(uv.now) == "function" then
-    return uv.now()
-  end
-  return math.floor(vim.fn.reltimefloat(vim.fn.reltime()) * 1000)
-end
 
 ---@return retroline.DiagnosticCounts
 local function new_counts()
@@ -279,7 +271,7 @@ local function marker_for(opts, severity)
   if severity_enabled(severity, opts.animate_severities) == false then
     return ""
   end
-  if state.runtime.diag_alert_severity == severity and now_ms() <= state.runtime.diag_alert_until then
+  if state.runtime.diag_alert_severity == severity and util.now_ms() <= state.runtime.diag_alert_until then
     ---@type string[]|nil
     local pulse = alert_frames[severity]
     if pulse ~= nil and #pulse > 0 then
@@ -287,6 +279,11 @@ local function marker_for(opts, severity)
       local pulse_index = ((state.runtime.frame_index - 1) % #pulse) + 1
       return pulse[pulse_index] or pulse[1] or ""
     end
+  end
+  ---@type boolean
+  local alert_expired = state.runtime.diag_alert_severity ~= "" and util.now_ms() > state.runtime.diag_alert_until
+  if alert_expired then
+    state.runtime.diag_alert_severity = ""
   end
   ---@type retroline.DiagnosticAnimationPreset|nil
   local preset = state.diagnostic_animations[opts.animation]

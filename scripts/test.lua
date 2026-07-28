@@ -28,6 +28,7 @@ end
 
 local retroline = require("retroline")
 local state = require("retroline.state")
+local path = require("retroline.path")
 
 test("setup tolerates invalid path numeric types", function()
   retroline.setup({
@@ -309,6 +310,87 @@ test("retro minimal layout keeps labeled chips", function()
   assert_true(string.find(output, "[M:N]", 1, true) ~= nil, "retro minimal layout should label mode chip")
   assert_true(string.find(output, "[F:three.txt]", 1, true) ~= nil, "retro minimal layout should label file chip")
   assert_true(string.find(output, "[L:0]", 1, true) ~= nil, "retro minimal layout should label line chip")
+end)
+
+test("path: short path passes through unchanged", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 60, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local p = "src/main.lua"
+  assert_eq(shorten(p, opts), p, "path under max_length should pass through")
+end)
+
+test("path: tier 1 shorten middle segments", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 35, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("src/lib/utils/deep/very_deep/nested/helper.lua", opts)
+  assert_true(string.find(result, "s/", 1, true) ~= nil, "tier 1 should shorten first segment")
+  assert_true(string.find(result, "l/", 1, true) ~= nil, "tier 1 should shorten second segment")
+  assert_true(string.find(result, "u/", 1, true) ~= nil, "tier 1 should shorten third segment")
+  assert_true(string.find(result, "nested/helper.lua", 1, true) ~= nil, "tier 1 should keep last 2 full segments")
+end)
+
+test("path: tier 2 truncated tail with prefix", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 21, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("src/lib/utils/deep/very_deep/nested/helper.lua", opts)
+  assert_true(
+    string.find(result, ".../nested/helper.lua", 1, true) ~= nil,
+    "tier 2 should use truncation prefix with tail"
+  )
+end)
+
+test("path: tier 3 tail only without prefix", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 18, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("src/lib/utils/deep/very_deep/nested/helper.lua", opts)
+  assert_true(string.find(result, "nested/helper.lua", 1, true) ~= nil, "tier 3 should return tail segments alone")
+  assert_true(string.sub(result, 1, 1) ~= ".", "tier 3 tail should start with the first tail segment character")
+end)
+
+test("path: tier 4 hard truncation", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 10, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("src/lib/utils/deep/very_deep/nested/helper.lua", opts)
+  assert_eq(vim.fn.strdisplaywidth(result), 10, "tier 4 should hard-truncate to max_length display width")
+end)
+
+test("path: home-relative path preserves tilde prefix", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 40, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("~/projects/retroline/src/main.lua", opts)
+  assert_true(string.find(result, "~/", 1, true) ~= nil, "home-relative path should keep tilde prefix")
+end)
+
+test("path: absolute root prefix is preserved", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 40, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("/usr/local/share/nvim/site/autoload.vim", opts)
+  assert_true(string.sub(result, 1, 1) == "/", "absolute path should start with /")
+end)
+
+test("path: single segment hard-truncates to max_length", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 10, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("verylongfilename.lua", opts)
+  assert_eq(vim.fn.strdisplaywidth(result), 10, "single segment longer than max_length should be hard-truncated")
+end)
+
+test("path: empty segments do not crash", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 20, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("/", opts)
+  assert_true(type(result) == "string", "root path should produce a string")
+end)
+
+test("path: CJK characters measured by display width", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 30, shorten_len = 1, keep_segments = 1, trunc_prefix = ".../" }
+  -- CJK chars are 2 cells wide each
+  local result = shorten("src/中文目录/deep/nested.lua", opts)
+  assert_true(
+    vim.fn.strdisplaywidth(result) <= opts.max_length,
+    "CJK path should fit within max_length by display width"
+  )
 end)
 
 ---@type integer

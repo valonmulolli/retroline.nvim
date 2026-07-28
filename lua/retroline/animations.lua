@@ -7,6 +7,9 @@
 ---@field current_mode_marker fun(animation_name: string): string
 ---@field list_animations fun(): string[]
 ---@field current_animation fun(): string
+---@field add_animation fun(name: string, preset: retroline.AnimationPreset): boolean
+---@field add_mode_animation fun(name: string, frames: string[]): boolean
+---@field add_diagnostic_animation fun(name: string, preset: retroline.DiagnosticAnimationPreset): boolean
 ---@field set_animation fun(name: string, opts?: retroline.SetAnimationOpts, restart_if_running?: fun(): nil): boolean
 ---@field next_animation fun(restart_if_running?: fun(): nil): string
 ---@field resolve_setup_config fun(merged: retroline.Config, opts: retroline.Config|nil): retroline.Config
@@ -30,6 +33,69 @@ local function contains(value, items)
     end
   end
   return false
+end
+
+---@param name string
+---@param preset retroline.AnimationPreset
+---@return boolean
+function M.add_animation(name, preset)
+  if type(name) ~= "string" or name == "" then
+    return false
+  end
+  if type(preset) ~= "table" or type(preset.frames) ~= "table" or #preset.frames == 0 then
+    return false
+  end
+  if type(preset.interval) ~= "number" or preset.interval < 16 then
+    return false
+  end
+  if state.animations[name] ~= nil then
+    return false
+  end
+  state.animations[name] = vim.deepcopy(preset)
+  table.insert(state.animation_names, name)
+  return true
+end
+
+---@param name string
+---@param frames string[]
+---@return boolean
+function M.add_mode_animation(name, frames)
+  if type(name) ~= "string" or name == "" then
+    return false
+  end
+  if type(frames) ~= "table" or #frames == 0 then
+    return false
+  end
+  if state.mode_animations[name] ~= nil then
+    return false
+  end
+  state.mode_animations[name] = vim.deepcopy(frames)
+  table.insert(state.mode_animation_names, name)
+  return true
+end
+
+---@param name string
+---@param preset retroline.DiagnosticAnimationPreset
+---@return boolean
+function M.add_diagnostic_animation(name, preset)
+  if type(name) ~= "string" or name == "" then
+    return false
+  end
+  if type(preset) ~= "table" then
+    return false
+  end
+  local severities = { "ERROR", "WARN", "INFO", "HINT", "OK" }
+  for _, sev in ipairs(severities) do
+    if type(preset[sev]) ~= "table" or #preset[sev] == 0 then
+      return false
+    end
+  end
+  if state.diagnostic_animations[name] ~= nil then
+    return false
+  end
+  state.diagnostic_animations[name] = vim.deepcopy(preset)
+  table.insert(state.diagnostic_animation_names, name)
+  return true
 end
 
 ---@return boolean

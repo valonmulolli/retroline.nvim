@@ -229,4 +229,7 @@ function M.component(opts)
   return M.component_for_buffer(vim.api.nvim_get_current_buf(), opts)
 end
 
+---@private
+M._smart_shorten_path = smart_shorten_path
+
 return M

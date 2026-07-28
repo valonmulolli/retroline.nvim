@@ -10,18 +10,11 @@
 ---@type retroline.StatuslineContextModule
 local M = {}
 
+---@type retroline.UtilModule
+local util = require("retroline.util")
+
 ---@type table<integer, retroline.StatuslineContextCache>
 local context_cache = {}
-
----@return integer
-local function now_ms()
-  ---@type table<string, any>|nil
-  local uv = vim.uv or vim.loop
-  if uv ~= nil and type(uv.now) == "function" then
-    return uv.now()
-  end
-  return math.floor(vim.fn.reltimefloat(vim.fn.reltime()) * 1000)
-end
 
 ---@param bufnr integer
 ---@return string
@@ -69,7 +62,7 @@ function M.context_for_buffer(bufnr)
   ---@type integer
   local tick = vim.api.nvim_buf_get_changedtick(bufnr)
   ---@type integer
-  local now = now_ms()
+  local now = util.now_ms()
   ---@type retroline.StatuslineContextCache|nil
   local cached = context_cache[bufnr]
   if cached ~= nil and cached.tick == tick and now < cached.expires_at then

@@ -1,4 +1,7 @@
 ---@class retroline.ApiPresetModule
+---@field add_animation fun(name: string, preset: retroline.AnimationPreset): boolean
+---@field add_mode_animation fun(name: string, frames: string[]): boolean
+---@field add_diagnostic_animation fun(name: string, preset: retroline.DiagnosticAnimationPreset): boolean
 ---@field set_animation fun(name: string, opts?: retroline.SetAnimationOpts): boolean
 ---@field next_animation fun(): string
 ---@field current_animation fun(): string
@@ -21,6 +24,27 @@ local lifecycle = require("retroline.lifecycle")
 
 ---@type retroline.ApiPresetModule
 local M = {}
+
+---@param name string
+---@param preset retroline.AnimationPreset
+---@return boolean
+function M.add_animation(name, preset)
+  return animations.add_animation(name, preset)
+end
+
+---@param name string
+---@param frames string[]
+---@return boolean
+function M.add_mode_animation(name, frames)
+  return animations.add_mode_animation(name, frames)
+end
+
+---@param name string
+---@param preset retroline.DiagnosticAnimationPreset
+---@return boolean
+function M.add_diagnostic_animation(name, preset)
+  return animations.add_diagnostic_animation(name, preset)
+end
 
 ---@param items string[]
 ---@param current string
