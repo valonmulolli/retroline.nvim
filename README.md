@@ -28,6 +28,8 @@
 - **Built-in renderer** -- `retroline.statusline()` works out of the box
 - **Standalone components** -- use `mode_component()`, `path_component()`, etc. in custom statuslines
 
+Git branch names are read from Gitsigns or mini.git buffer metadata; Retroline does not calculate dirty-file state. The LSP segment shows the first attached client, with `+N` when additional clients are attached.
+
 ---
 
 ## Install
@@ -66,16 +68,46 @@ No options are required to get started. `setup()` uses the built-in defaults; pa
 
 ---
 
+## Common Customizations
+
+Use transparent backgrounds with foreground colors derived from your colorscheme:
+
+```lua
+local retroline = require("retroline")
+retroline.setup({ statusline = { transparent = true } })
+retroline.enable_statusline()
+```
+
+Or use Retroline's retro palette and bracketed chips:
+
+```lua
+local retroline = require("retroline")
+retroline.setup({ statusline = { retro = true } })
+retroline.enable_statusline()
+```
+
+---
+
 ## Usage
+
+### Built-in statusline
 
 ```lua
 -- Configure defaults, then enable the built-in statusline (sets laststatus=3)
 local retroline = require("retroline")
 retroline.setup()
 retroline.enable_statusline()
+```
 
--- Or use individual components in your own statusline
-local my_statusline = function()
+### Custom statusline
+
+Call `setup()` to initialize Retroline, then compose its components in a Lua statusline function:
+
+```lua
+local retroline = require("retroline")
+retroline.setup()
+
+_G.my_statusline = function()
   return table.concat({
     retroline.mode_component(),
     retroline.path_component(),
@@ -83,9 +115,9 @@ local my_statusline = function()
     retroline.diagnostic_component(),
   })
 end
--- Then set statusline to evaluate your custom function
-vim.g.my_statusline = my_statusline
-vim.o.statusline = "%!v:lua.vim.g.my_statusline()"
+
+vim.o.laststatus = 3
+vim.o.statusline = "%!v:lua.my_statusline()"
 ```
 
 ### Sidebar buffers
@@ -251,14 +283,6 @@ retroline.add_diagnostic_animation("my_alert", {
 
 ---
 
-## Tests
-
-```sh
-nvim --headless -u NONE -i NONE --cmd "set rtp+=. shadafile=NONE" -l scripts/test.lua
-```
-
----
-
 ## Internal Layout
 
 ```
@@ -280,7 +304,23 @@ lua/retroline/
 └── statusline/
     ├── options.lua          -- Option normalization, layout selection
     ├── style.lua            -- Section delimiters, retro chip helpers
-    ├── context.lua          -- Cached git branch + LSP info
+    ├── context.lua          -- Cached Git branch + LSP client info
     ├── render.lua           -- Statusline string builder
     └── manage.lua           -- Enable/disable, per-window management
 ```
+
+---
+
+## Contributing
+
+Bug reports and pull requests are welcome. Run the test suite before submitting changes:
+
+```sh
+nvim --headless -u NONE -i NONE --cmd "set rtp+=. shadafile=NONE" -l scripts/test.lua
+```
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).
