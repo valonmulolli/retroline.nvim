@@ -41,9 +41,7 @@
   event = "UIEnter",
   config = function()
     local retroline = require("retroline")
-    retroline.setup({
-      animation = "orbit",
-    })
+    retroline.setup()
     retroline.enable_statusline()
   end,
 }
@@ -60,20 +58,23 @@ vim.pack.add({
 })
 
 local retroline = require("retroline")
-retroline.setup({ animation = "orbit" })
+retroline.setup()
 retroline.enable_statusline()
 ```
+
+No options are required to get started. `setup()` uses the built-in defaults; pass options only when you want to customize them.
 
 ---
 
 ## Usage
 
 ```lua
--- Enable the built-in statusline (sets laststatus=3)
-require("retroline").enable_statusline()
+-- Configure defaults, then enable the built-in statusline (sets laststatus=3)
+local retroline = require("retroline")
+retroline.setup()
+retroline.enable_statusline()
 
 -- Or use individual components in your own statusline
-local retroline = require("retroline")
 local my_statusline = function()
   return table.concat({
     retroline.mode_component(),

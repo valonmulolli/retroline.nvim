@@ -30,6 +30,39 @@ local retroline = require("retroline")
 local state = require("retroline.state")
 local path = require("retroline.path")
 
+test("default setup renders the built-in statusline", function()
+  retroline.setup()
+
+  local config = state.runtime.config
+  assert_eq(config.animation, "dots", "default status animation should be dots")
+  assert_eq(config.interval, 150, "default status animation interval should be 150ms")
+  assert_eq(config.mode.animation, "spin", "default mode animation should be spin")
+  assert_eq(config.path.style, "relative", "default path style should be relative")
+  assert_eq(config.diagnostic.animation, "ascii_alert", "default diagnostic animation should be ascii_alert")
+  assert_eq(config.statusline.style, "rounded", "default statusline style should be rounded")
+  assert_eq(config.statusline.adaptive, true, "adaptive layout should be enabled by default")
+
+  local buf = vim.api.nvim_get_current_buf()
+  local previous_name = vim.api.nvim_buf_get_name(buf)
+  local ok, output = pcall(function()
+    vim.api.nvim_buf_set_name(buf, "retroline-defaults.lua")
+    retroline.enable_statusline()
+    local statusline = vim.o.statusline
+    assert_eq(statusline, "%!v:lua.require('retroline').statusline()", "built-in statusline expression should be installed")
+    return vim.api.nvim_eval_statusline(statusline, {
+      winid = vim.api.nvim_get_current_win(),
+    }).str
+  end)
+  vim.api.nvim_buf_set_name(buf, previous_name)
+
+  assert_true(ok, "default statusline should evaluate: " .. tostring(output))
+  assert_eq(vim.o.laststatus, 3, "built-in statusline should enable global statusline")
+  assert_true(
+    string.find(output, "retroline-defaults.lua", 1, true) ~= nil,
+    "default statusline should render the current filename"
+  )
+end)
+
 test("setup tolerates invalid path numeric types", function()
   retroline.setup({
     path = {
