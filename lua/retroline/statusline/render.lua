@@ -19,6 +19,8 @@ local options = require("retroline.statusline.options")
 local style = require("retroline.statusline.style")
 ---@type retroline.StatuslineContextModule
 local context = require("retroline.statusline.context")
+---@type retroline.UtilModule
+local util = require("retroline.util")
 
 ---@type retroline.StatuslineRenderModule
 local M = {}
@@ -49,14 +51,15 @@ end
 ---@return string
 local function sidebar_statusline(opts, filetype)
   ---@type string
-  local label = opts.sidebar_labels[filetype] or (filetype ~= "" and filetype or "Panel")
+  local label = util.escape_statusline(opts.sidebar_labels[filetype] or (filetype ~= "" and filetype or "Panel"))
+  local pad = util.escape_statusline(opts.pad)
   if opts.retro then
     label = string.upper(label)
   end
   ---@type string
   local chip_text = opts.retro and style.retro_chip(label) or label
   ---@type string
-  local left = style.wrap("RetrolineMuted", "%<" .. opts.pad .. chip_text .. opts.pad)
+  local left = style.wrap("RetrolineMuted", "%<" .. pad .. chip_text .. pad)
   return left .. "%="
 end
 
@@ -122,21 +125,23 @@ local function context_blocks(opts, layout, bufnr)
   ---@type string
   local git_block = ""
   if opts.show_git and git ~= "" then
+    local git_text = util.escape_statusline(git)
     ---@type string
     local text = opts.retro
-      and style.retro_chip(retro_segment_text("GIT", git, layout))
-      or ("git:" .. git)
-    git_block = style.wrap("RetrolineMuted", opts.pad .. text)
+      and style.retro_chip(retro_segment_text("GIT", git_text, layout))
+      or ("git:" .. git_text)
+    git_block = style.wrap("RetrolineMuted", util.escape_statusline(opts.pad) .. text)
   end
 
   ---@type string
   local lsp_block = ""
   if opts.show_lsp and lsp ~= "" and layout == "full" then
+    local lsp_text = util.escape_statusline(lsp)
     ---@type string
     local text = opts.retro
-      and style.retro_chip(retro_segment_text("LSP", lsp, layout))
-      or ("lsp:" .. lsp)
-    lsp_block = style.wrap("RetrolineMuted", opts.pad .. text)
+      and style.retro_chip(retro_segment_text("LSP", lsp_text, layout))
+      or ("lsp:" .. lsp_text)
+    lsp_block = style.wrap("RetrolineMuted", util.escape_statusline(opts.pad) .. text)
   end
 
   return git_block, lsp_block
@@ -183,6 +188,7 @@ function M.render()
     opts = options.normalize_opts(nil)
     config.statusline = opts
   end
+  local pad = util.escape_statusline(opts.pad)
   ---@type string
   local filetype = vim.bo[bufnr].filetype
   if options.is_sidebar(opts, filetype) then
@@ -212,15 +218,15 @@ function M.render()
     path_text = style.retro_chip(path_text)
   end
   ---@type string
-  local path_block = style.wrap("RetrolinePath", opts.pad .. path_text .. opts.pad)
+  local path_block = style.wrap("RetrolinePath", pad .. path_text .. pad)
 
   ---@type string
   local anim = ""
   if layout == "full" then
     if opts.retro then
-      anim = highlights.wrap("RetrolineAnim", opts.pad .. style.retro_chip(animations.current_frame()) .. opts.pad)
+      anim = highlights.wrap("RetrolineAnim", pad .. style.retro_chip(animations.current_frame()) .. pad)
     else
-      anim = style.wrap("RetrolineAnim", opts.pad .. animations.current_frame() .. opts.pad)
+      anim = style.wrap("RetrolineAnim", pad .. animations.current_frame() .. pad)
     end
   end
 
@@ -236,9 +242,9 @@ function M.render()
     if opts.retro then
       ---@type string
       local chip_text = layout == "full" and "FT %y" or "T:%y"
-      filetype_text = style.wrap("RetrolineMuted", opts.pad .. style.retro_chip(chip_text))
+      filetype_text = style.wrap("RetrolineMuted", pad .. style.retro_chip(chip_text))
     else
-      filetype_text = style.wrap("RetrolineMuted", opts.pad .. "%y")
+      filetype_text = style.wrap("RetrolineMuted", pad .. "%y")
     end
   end
 
@@ -246,10 +252,10 @@ function M.render()
   local diagnostics_block = diagnostics_for_layout(config, layout, bufnr)
   if diagnostics_block ~= "" then
     if opts.retro and layout ~= "full" and diagnostics_block:sub(1, 1) ~= "[" then
-      diagnostics_block = style.wrap("RetrolineMuted", opts.pad .. "[") .. diagnostics_block
+      diagnostics_block = style.wrap("RetrolineMuted", pad .. "[") .. diagnostics_block
         .. style.wrap("RetrolineMuted", "]")
     else
-      diagnostics_block = opts.pad .. diagnostics_block
+      diagnostics_block = pad .. diagnostics_block
     end
   end
 
@@ -284,7 +290,7 @@ function M.render()
   ---@type string
   local left = table.concat({
     mode_block,
-    opts.pad,
+    pad,
     "%<",
     path_block,
     flags,
@@ -292,9 +298,9 @@ function M.render()
   })
 
   ---@type string
-  local location_block = location ~= "" and (opts.pad .. location) or ""
+  local location_block = location ~= "" and (pad .. location) or ""
   ---@type string
-  local progress_block = progress ~= "" and (opts.pad .. progress) or ""
+  local progress_block = progress ~= "" and (pad .. progress) or ""
 
   ---@type string
   local right = table.concat({
@@ -303,7 +309,7 @@ function M.render()
     diagnostics_block,
     location_block,
     progress_block,
-    opts.pad,
+    pad,
   })
 
   if layout == "full" then

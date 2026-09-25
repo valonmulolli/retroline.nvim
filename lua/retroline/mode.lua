@@ -7,6 +7,8 @@
 local state = require("retroline.state")
 ---@type retroline.AnimationModule
 local animations = require("retroline.animations")
+---@type retroline.UtilModule
+local util = require("retroline.util")
 
 ---@type retroline.ModeModule
 local M = {}
@@ -186,12 +188,12 @@ function M.component(opts)
 	---@type string
 	local label = resolve_mode_label(merged.style, raw_mode)
 	if merged.animate == false then
-		return label
+		return util.escape_statusline(label)
 	end
 
 	---@type string
 	local marker = animations.current_mode_marker(merged.animation)
-	return label .. merged.separator .. marker
+	return util.escape_statusline(label .. merged.separator .. marker)
 end
 
 return M

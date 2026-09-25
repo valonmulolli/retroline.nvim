@@ -16,23 +16,34 @@
 
 ---@type retroline.StateModule
 local state = require("retroline.state")
+---@type retroline.UtilModule
+local util = require("retroline.util")
 
 ---@type retroline.AnimationModule
 local M = {}
 
----@param value string
----@param items string[]
+---@param items any
 ---@return boolean
-local function contains(value, items)
+local function is_string_list(items)
   if type(items) ~= "table" then
     return false
   end
-  for _, item in ipairs(items) do
-    if item == value then
-      return true
+  local count = 0
+  local max_index = 0
+  for index, item in pairs(items) do
+    if type(index) ~= "number" or index < 1 or index % 1 ~= 0 or type(item) ~= "string" then
+      return false
     end
+    count = count + 1
+    max_index = math.max(max_index, index)
   end
-  return false
+  return count > 0 and count == max_index
+end
+
+---@param value any
+---@return boolean
+local function is_valid_interval(value)
+  return type(value) == "number" and value >= 16 and value < math.huge and value % 1 == 0
 end
 
 ---@param name string
@@ -42,10 +53,10 @@ function M.add_animation(name, preset)
   if type(name) ~= "string" or name == "" then
     return false
   end
-  if type(preset) ~= "table" or type(preset.frames) ~= "table" or #preset.frames == 0 then
+  if type(preset) ~= "table" or not is_string_list(preset.frames) then
     return false
   end
-  if type(preset.interval) ~= "number" or preset.interval < 16 then
+  if not is_valid_interval(preset.interval) then
     return false
   end
   if state.animations[name] ~= nil then
@@ -63,7 +74,7 @@ function M.add_mode_animation(name, frames)
   if type(name) ~= "string" or name == "" then
     return false
   end
-  if type(frames) ~= "table" or #frames == 0 then
+  if not is_string_list(frames) then
     return false
   end
   if state.mode_animations[name] ~= nil then
@@ -86,7 +97,7 @@ function M.add_diagnostic_animation(name, preset)
   end
   local severities = { "ERROR", "WARN", "INFO", "HINT", "OK" }
   for _, sev in ipairs(severities) do
-    if type(preset[sev]) ~= "table" or #preset[sev] == 0 then
+    if not is_string_list(preset[sev]) then
       return false
     end
   end
@@ -105,6 +116,10 @@ function M.should_animate()
   if config.enabled == false then
     return false
   end
+  local current_buf = vim.api.nvim_get_current_buf()
+  if util.contains(vim.bo[current_buf].filetype, config.skip_filetypes) then
+    return false
+  end
   if vim.o.laststatus == 0 then
     return false
   end
@@ -121,7 +136,11 @@ function M.current_frame()
   if #frames == 0 then
     return "."
   end
-  return frames[state.runtime.frame_index] or frames[1] or "."
+  local frame = frames[state.runtime.frame_index] or frames[1] or "."
+  if type(frame) ~= "string" then
+    return "."
+  end
+  return util.escape_statusline(frame)
 end
 
 ---@param animation_name string

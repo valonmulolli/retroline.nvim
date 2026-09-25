@@ -3,7 +3,6 @@
 ---@field disable fun(): nil
 ---@field sync_window fun(winid?: integer): nil
 ---@field forget_window fun(winid: integer): nil
----@field is_enabled fun(): boolean
 
 ---@type retroline.StateModule
 local state = require("retroline.state")
@@ -53,11 +52,6 @@ local function apply_local_window(winid)
     state.runtime.statusline_prev_windows[winid] = get_win_statusline(winid)
   end
   set_win_statusline(winid, STATUSLINE_EXPR)
-end
-
----@return boolean
-function M.is_enabled()
-  return state.runtime.statusline_enabled
 end
 
 ---@param winid? integer

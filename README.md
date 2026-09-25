@@ -40,11 +40,28 @@
   name = "retroline.nvim",
   event = "UIEnter",
   config = function()
-    require("retroline").setup({
+    local retroline = require("retroline")
+    retroline.setup({
       animation = "orbit",
     })
+    retroline.enable_statusline()
   end,
 }
+```
+
+### vim.pack (Neovim 0.12+)
+
+```lua
+vim.pack.add({
+  {
+    src = "https://github.com/valonmulolli/retroline.nvim",
+    name = "retroline.nvim",
+  },
+})
+
+local retroline = require("retroline")
+retroline.setup({ animation = "orbit" })
+retroline.enable_statusline()
 ```
 
 ---
@@ -110,6 +127,32 @@ require("retroline").next_diagnostic_animation()
 | `current_mode_animation()` / `list_mode_animations()`             | `string`/`string[]` | Query mode animation             |
 | `set_diagnostic_animation(name)` / `next_diagnostic_animation()`  | `boolean`/`string`  | Cycle diagnostic animation       |
 | `current_diagnostic_animation()` / `list_diagnostic_animations()` | `string`/`string[]` | Query diagnostic animation       |
+| `add_animation(name, preset)`                                     | `boolean`           | Register a status animation      |
+| `add_mode_animation(name, frames)`                                | `boolean`           | Register a mode marker animation |
+| `add_diagnostic_animation(name, preset)`                          | `boolean`           | Register a diagnostic animation |
+
+---
+
+## Custom Animations
+
+Registration returns `false` for duplicate names or invalid presets. Status frames require a finite integer interval of at least 16 ms; mode and diagnostic presets require non-empty string frame lists.
+
+```lua
+local retroline = require("retroline")
+
+retroline.add_animation("my_scan", {
+  frames = { "[=   ]", "[ == ]", "[   =]" },
+  interval = 90,
+})
+retroline.add_mode_animation("my_cursor", { "_", " ", "_", " " })
+retroline.add_diagnostic_animation("my_alert", {
+  ERROR = { "E!", "!E" },
+  WARN = { "W?", "?W" },
+  INFO = { "i" },
+  HINT = { "h" },
+  OK = { "OK" },
+})
+```
 
 ---
 
@@ -223,6 +266,7 @@ lua/retroline/
 ├── setup.lua                -- Config merge, autocmd wiring
 ├── state.lua                -- Defaults, runtime state, animation tables
 ├── lifecycle.lua            -- UV timer lifecycle (start/stop/tick)
+├── util.lua                 -- Shared timing, list, and statusline helpers
 ├── animations.lua           -- Frame resolution, animation cycling
 ├── mode.lua                 -- Mode labels, mode marker animation
 ├── path.lua                 -- Path formatting, smart shortening

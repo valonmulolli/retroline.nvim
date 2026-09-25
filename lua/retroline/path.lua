@@ -5,6 +5,8 @@
 
 ---@type retroline.StateModule
 local state = require("retroline.state")
+---@type retroline.UtilModule
+local util = require("retroline.util")
 
 ---@type retroline.PathModule
 local M = {}
@@ -65,9 +67,9 @@ local function path_prefix(path)
     return "/"
   end
   ---@type string|nil
-  local drive = path:match("^([A-Za-z]:[/\\])")
+  local drive = path:match("^([A-Za-z]:)/")
   if drive ~= nil then
-    return drive
+    return drive .. "/"
   end
   return ""
 end
@@ -82,8 +84,14 @@ local function smart_shorten_path(path, opts)
     return path
   end
 
+  ---@type string
+  local normalized_path = path:gsub("\\", "/")
+  ---@type string
+  local prefix = path_prefix(normalized_path)
+  ---@type string
+  local path_body = prefix ~= "" and string.sub(normalized_path, #prefix + 1) or normalized_path
   ---@type string[]
-  local segments = split_path(path)
+  local segments = split_path(path_body)
   if #segments == 0 then
     return path
   end
@@ -100,7 +108,7 @@ local function smart_shorten_path(path, opts)
   for index, segment in ipairs(segments) do
     if index < keep_from then
       ---@type string
-      local short = string.sub(segment, 1, shorten_len)
+      local short = vim.fn.strcharpart(segment, 0, shorten_len)
       if short == "" then
         short = segment
       end
@@ -111,7 +119,7 @@ local function smart_shorten_path(path, opts)
   end
 
   ---@type string
-  local candidate = path_prefix(path) .. table.concat(shortened, "/")
+  local candidate = prefix .. table.concat(shortened, "/")
   if vim.fn.strdisplaywidth(candidate) <= opts.max_length then
     return candidate
   end
@@ -136,8 +144,16 @@ local function smart_shorten_path(path, opts)
   end
 
   ---@type integer
-  local cut_from = math.max(1, (#tail_text - opts.max_length) + 1)
-  return string.sub(tail_text, cut_from)
+  local cut_from = 0
+  ---@type integer
+  local char_count = vim.fn.strchars(tail_text)
+  ---@type string
+  local hard_truncated = tail_text
+  while cut_from < char_count and vim.fn.strdisplaywidth(hard_truncated) > opts.max_length do
+    cut_from = cut_from + 1
+    hard_truncated = vim.fn.strcharpart(tail_text, cut_from)
+  end
+  return hard_truncated
 end
 
 ---@param bufnr integer
@@ -153,7 +169,7 @@ local function format_buffer_path(bufnr, opts)
   ---@type string|nil
   local special_label = statusline_opts.sidebar_labels[ft] or special_filetype_labels[ft]
   if special_label ~= nil then
-    return "[" .. special_label .. "]"
+    return util.escape_statusline("[" .. special_label .. "]")
   end
   if bt == "terminal" then
     return "[Terminal]"
@@ -165,7 +181,7 @@ local function format_buffer_path(bufnr, opts)
     return "[No Name]"
   end
   if name:match("^<.+>$") ~= nil then
-    return bracket_name_to_label(name)
+    return util.escape_statusline(bracket_name_to_label(name))
   end
 
   ---@type string
@@ -178,7 +194,7 @@ local function format_buffer_path(bufnr, opts)
     path = vim.fn.fnamemodify(name, ":~:.")
   end
 
-  return smart_shorten_path(path, opts)
+  return util.escape_statusline(smart_shorten_path(path, opts))
 end
 
 ---@param opts retroline.PathOpts|nil

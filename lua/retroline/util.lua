@@ -1,6 +1,8 @@
 ---@class retroline.UtilModule
 ---@field now_ms fun(): integer
 ---@field starts_with fun(value: string, prefix: string): boolean
+---@field contains fun(value: string, items: string[]): boolean
+---@field escape_statusline fun(text: string): string
 
 ---@type retroline.UtilModule
 local M = {}
@@ -35,6 +37,12 @@ function M.contains(value, items)
     end
   end
   return false
+end
+
+---@param text string
+---@return string
+function M.escape_statusline(text)
+  return (text:gsub("%%", "%%%%"))
 end
 
 return M

@@ -10,7 +10,6 @@
 ---@field component fun(opts?: retroline.DiagnosticOpts): string
 ---@field refresh_buffer fun(bufnr?: integer): nil
 ---@field clear_buffer fun(bufnr: integer): nil
----@field clear_all fun(): nil
 ---@field setup_autocmds fun(group: integer, on_change?: fun(severity: string|nil): nil): nil
 
 ---@type retroline.StateModule
@@ -223,19 +222,15 @@ function M.clear_buffer(bufnr)
 end
 
 ---@return nil
-function M.clear_all()
-  cache = {}
-end
-
 ---@param text string
 ---@param group string
 ---@param use_highlights boolean
 ---@return string
 local function maybe_hl(text, group, use_highlights)
   if use_highlights == false then
-    return text
+    return util.escape_statusline(text)
   end
-  return highlights.wrap(group, text)
+  return highlights.wrap(group, util.escape_statusline(text))
 end
 
 ---@param counts retroline.DiagnosticCounts
@@ -402,7 +397,7 @@ function M.component_for_buffer(bufnr, opts)
   if #parts == 0 then
     return format_ok(merged)
   end
-  return table.concat(parts, merged.separator)
+  return table.concat(parts, util.escape_statusline(merged.separator))
 end
 
 ---@param opts? retroline.DiagnosticOpts

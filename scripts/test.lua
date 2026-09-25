@@ -312,6 +312,135 @@ test("retro minimal layout keeps labeled chips", function()
   assert_true(string.find(output, "[L:0]", 1, true) ~= nil, "retro minimal layout should label line chip")
 end)
 
+test("skip_filetypes suppresses animation in configured buffers", function()
+  retroline.setup({
+    skip_filetypes = { "retroline-skip-test" },
+  })
+
+  local animations = require("retroline.animations")
+  local original_filetype = vim.bo.filetype
+  local original_laststatus = vim.o.laststatus
+  local original_list_uis = vim.api.nvim_list_uis
+  vim.o.laststatus = 2
+  vim.api.nvim_list_uis = function()
+    return { {} }
+  end
+
+  vim.bo.filetype = "retroline-skip-test"
+  local skipped = animations.should_animate()
+  vim.bo.filetype = "lua"
+  local allowed = animations.should_animate()
+
+  vim.bo.filetype = original_filetype
+  vim.o.laststatus = original_laststatus
+  vim.api.nvim_list_uis = original_list_uis
+
+  assert_eq(skipped, false, "configured filetype should suppress animation")
+  assert_eq(allowed, true, "other filetypes should still animate")
+end)
+
+test("custom animation registrations validate presets", function()
+  retroline.setup()
+
+  assert_true(
+    retroline.add_animation("retroline_test_animation", { frames = { "one", "two" }, interval = 80 }),
+    "valid status animation should register"
+  )
+  assert_eq(
+    retroline.add_animation("retroline_bad_frames", { frames = { "one", 2 }, interval = 80 }),
+    false,
+    "non-string status frames should be rejected"
+  )
+  assert_eq(
+    retroline.add_animation("retroline_bad_interval", { frames = { "one" }, interval = math.huge }),
+    false,
+    "non-finite status intervals should be rejected"
+  )
+  assert_eq(
+    retroline.add_animation("retroline_nan_interval", { frames = { "one" }, interval = 0 / 0 }),
+    false,
+    "NaN status intervals should be rejected"
+  )
+  assert_eq(
+    retroline.add_mode_animation("retroline_bad_mode", { "one", false }),
+    false,
+    "non-string mode frames should be rejected"
+  )
+  assert_true(
+    retroline.add_mode_animation("retroline_test_mode", { "%f" }),
+    "valid mode animation should register"
+  )
+  assert_true(
+    retroline.add_animation("retroline_test_percent_animation", { frames = { "%p" }, interval = 80 }),
+    "valid percent-containing status animation should register"
+  )
+  assert_eq(
+    retroline.add_diagnostic_animation("retroline_bad_diagnostic", {
+      ERROR = { "E" },
+      WARN = { 1 },
+      INFO = { "I" },
+      HINT = { "H" },
+      OK = { "OK" },
+    }),
+    false,
+    "non-string diagnostic frames should be rejected"
+  )
+  assert_true(
+    retroline.add_diagnostic_animation("retroline_test_diagnostic", {
+      ERROR = { "E" },
+      WARN = { "W" },
+      INFO = { "I" },
+      HINT = { "H" },
+      OK = { "OK" },
+    }),
+    "valid diagnostic animation should register"
+  )
+  assert_eq(
+    retroline.add_diagnostic_animation("retroline_bad_empty_diagnostic", {
+      ERROR = { "E" },
+      WARN = { "W" },
+      INFO = { "I" },
+      HINT = { "H" },
+      OK = {},
+    }),
+    false,
+    "empty severity frames should be rejected"
+  )
+end)
+
+test("components escape literal statusline percent directives", function()
+  retroline.setup({
+    path = { style = "filename" },
+    diagnostic = { animate = false, empty = "%f" },
+  })
+
+  local buf = vim.api.nvim_get_current_buf()
+  local previous_name = vim.api.nvim_buf_get_name(buf)
+  vim.api.nvim_buf_set_name(buf, "retroline-percent%l.txt")
+
+  local path_text = retroline.path_component()
+  local mode_text = retroline.mode_component({ animation = "retroline_test_mode" })
+  local diagnostic_text = retroline.diagnostic_component()
+  retroline.set_animation("retroline_test_percent_animation")
+  local animation_text = retroline.component()
+  animation_text = retroline.component()
+  retroline.enable_statusline()
+  local rendered = vim.api.nvim_eval_statusline("%!v:lua.require('retroline').statusline()", {
+    winid = vim.api.nvim_get_current_win(),
+  }).str
+
+  vim.api.nvim_buf_set_name(buf, previous_name)
+
+  assert_true(string.find(path_text, "retroline-percent%%l.txt", 1, true) ~= nil, "path percent should be escaped")
+  assert_true(string.find(mode_text, "N%%f", 1, true) ~= nil, "mode frame percent should be escaped")
+  assert_true(string.find(diagnostic_text, "%%f", 1, true) ~= nil, "diagnostic percent should be escaped")
+  assert_true(string.find(animation_text, "%%p", 1, true) ~= nil, "status frame percent should be escaped")
+  assert_true(
+    string.find(rendered, "percent%l.txt", 1, true) ~= nil,
+    "evaluated statusline should show percent directives literally"
+  )
+end)
+
 test("path: short path passes through unchanged", function()
   local shorten = path._smart_shorten_path
   local opts = { max_length = 60, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
@@ -357,15 +486,22 @@ end)
 test("path: home-relative path preserves tilde prefix", function()
   local shorten = path._smart_shorten_path
   local opts = { max_length = 40, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
-  local result = shorten("~/projects/retroline/src/main.lua", opts)
-  assert_true(string.find(result, "~/", 1, true) ~= nil, "home-relative path should keep tilde prefix")
+  local result = shorten("~/verylonghomefolder/projectname/src/longfilename.lua", opts)
+  assert_eq(result, "~/v/p/src/longfilename.lua", "shortened home path should retain one tilde prefix")
+end)
+
+test("path: drive prefix is not duplicated while shortening", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 40, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
+  local result = shorten("C:/verylonghomefolder/projectname/src/longfilename.lua", opts)
+  assert_eq(result, "C:/v/p/src/longfilename.lua", "shortened drive path should retain one drive prefix")
 end)
 
 test("path: absolute root prefix is preserved", function()
   local shorten = path._smart_shorten_path
   local opts = { max_length = 40, shorten_len = 1, keep_segments = 2, trunc_prefix = ".../" }
-  local result = shorten("/usr/local/share/nvim/site/autoload.vim", opts)
-  assert_true(string.sub(result, 1, 1) == "/", "absolute path should start with /")
+  local result = shorten("/verylonghomefolder/projectname/src/longfilename.lua", opts)
+  assert_eq(result, "/v/p/src/longfilename.lua", "shortened absolute path should preserve its root")
 end)
 
 test("path: single segment hard-truncates to max_length", function()
@@ -384,13 +520,18 @@ end)
 
 test("path: CJK characters measured by display width", function()
   local shorten = path._smart_shorten_path
-  local opts = { max_length = 30, shorten_len = 1, keep_segments = 1, trunc_prefix = ".../" }
+  local opts = { max_length = 20, shorten_len = 1, keep_segments = 1, trunc_prefix = ".../" }
   -- CJK chars are 2 cells wide each
   local result = shorten("src/中文目录/deep/nested.lua", opts)
-  assert_true(
-    vim.fn.strdisplaywidth(result) <= opts.max_length,
-    "CJK path should fit within max_length by display width"
-  )
+  assert_eq(result, "s/中/d/nested.lua", "shortened CJK segment should retain a complete character")
+end)
+
+test("path: CJK hard truncation respects display width and character boundaries", function()
+  local shorten = path._smart_shorten_path
+  local opts = { max_length = 8, shorten_len = 1, keep_segments = 1, trunc_prefix = ".../" }
+  local result = shorten("src/deep/非常长文件.lua", opts)
+  assert_eq(result, "文件.lua", "hard truncation should keep whole trailing CJK characters")
+  assert_eq(vim.fn.strdisplaywidth(result), 8, "hard truncation should fit by display width")
 end)
 
 ---@type integer
