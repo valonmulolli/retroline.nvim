@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Neovim ${{ matrix.nvim }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        nvim: [minimum, latest]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Neovim
+        env:
+          NVIM_RELEASE: ${{ matrix.nvim }}
+        run: |
+          if [ "$NVIM_RELEASE" = "minimum" ]; then
+            release_url="https://github.com/neovim/neovim/releases/download/v0.12.0/nvim-linux-x86_64.tar.gz"
+          else
+            release_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+          fi
+          curl --fail --location --retry 3 "$release_url" --output /tmp/nvim.tar.gz
+          sudo tar -xzf /tmp/nvim.tar.gz -C /opt
+          echo "/opt/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Show Neovim version
+        run: nvim --version
+
+      - name: Run tests
+        run: nvim --headless -u NONE -i NONE --cmd "set rtp+=. shadafile=NONE" -l scripts/test.lua

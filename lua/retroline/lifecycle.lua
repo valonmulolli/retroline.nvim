@@ -138,7 +138,7 @@ end
 
 ---@return nil
 function M.start()
-  if state.runtime.running then
+  if state.runtime.running or state.runtime.config.enabled ~= true then
     return
   end
 

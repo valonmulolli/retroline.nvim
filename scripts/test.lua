@@ -205,6 +205,16 @@ test("enable_statusline respects enabled=false", function()
   assert_eq(vim.go.statusline, "PLAIN", "enable_statusline should be a no-op when disabled")
 end)
 
+test("start and toggle respect enabled=false", function()
+  retroline.setup({ enabled = false })
+
+  retroline.start()
+  assert_eq(retroline.is_running(), false, "start should not run the timer when disabled")
+
+  retroline.toggle()
+  assert_eq(retroline.is_running(), false, "toggle should not run the timer when disabled")
+end)
+
 test("path component respects configured sidebar labels", function()
   retroline.setup({
     statusline = {
