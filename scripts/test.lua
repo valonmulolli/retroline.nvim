@@ -278,6 +278,103 @@ test("diagnostic animation can target only errors", function()
   )
 end)
 
+test("DiagnosticChanged refreshes cached buffer counts", function()
+  retroline.setup({
+    diagnostic = {
+      animate = false,
+      empty = "",
+      style = "full",
+      use_highlights = false,
+    },
+  })
+
+  local diagnostics = require("retroline.diagnostics")
+  local buf = vim.api.nvim_create_buf(false, true)
+  local ns = vim.api.nvim_create_namespace("retroline-tests-diagnostic-cache")
+  local ok, err = pcall(function()
+    diagnostics.refresh_buffer(buf)
+
+    vim.diagnostic.set(ns, buf, {
+      { lnum = 0, col = 0, message = "first", severity = vim.diagnostic.severity.ERROR },
+    })
+    assert_true(
+      vim.wait(200, function()
+        return diagnostics.component_for_buffer(buf) == "E1"
+      end, 5),
+      "DiagnosticChanged should refresh the cache after an initial diagnostic is added"
+    )
+
+    vim.diagnostic.set(ns, buf, {
+      { lnum = 0, col = 0, message = "first", severity = vim.diagnostic.severity.ERROR },
+      { lnum = 1, col = 0, message = "second", severity = vim.diagnostic.severity.ERROR },
+      { lnum = 2, col = 0, message = "warning", severity = vim.diagnostic.severity.WARN },
+    })
+    assert_true(
+      vim.wait(200, function()
+        return diagnostics.component_for_buffer(buf) == "E2 W1"
+      end, 5),
+      "DiagnosticChanged should refresh changed severity counts"
+    )
+  end)
+
+  vim.diagnostic.reset(ns, buf)
+  if vim.api.nvim_buf_is_valid(buf) then
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
+  if not ok then
+    error(err, 0)
+  end
+end)
+
+test("workspace diagnostics aggregate loaded buffer counts", function()
+  retroline.setup({
+    diagnostic = {
+      animate = false,
+      empty = "",
+      scope = "workspace",
+      style = "full",
+      use_highlights = false,
+    },
+  })
+
+  local diagnostics = require("retroline.diagnostics")
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    vim.diagnostic.reset(nil, buf)
+  end
+
+  local error_buf = vim.api.nvim_create_buf(false, true)
+  local warning_buf = vim.api.nvim_create_buf(false, true)
+  local ns = vim.api.nvim_create_namespace("retroline-tests-workspace-diagnostics")
+  local ok, err = pcall(function()
+    vim.diagnostic.set(ns, error_buf, {
+      { lnum = 0, col = 0, message = "one", severity = vim.diagnostic.severity.ERROR },
+      { lnum = 1, col = 0, message = "two", severity = vim.diagnostic.severity.ERROR },
+    })
+    vim.diagnostic.set(ns, warning_buf, {
+      { lnum = 0, col = 0, message = "warning", severity = vim.diagnostic.severity.WARN },
+    })
+
+    assert_true(
+      vim.wait(200, function()
+        return diagnostics.component_for_buffer(error_buf) == "E2 W1"
+      end, 5),
+      "workspace scope should sum diagnostics from loaded buffers"
+    )
+  end)
+
+  vim.diagnostic.reset(ns, error_buf)
+  vim.diagnostic.reset(ns, warning_buf)
+  if vim.api.nvim_buf_is_valid(error_buf) then
+    vim.api.nvim_buf_delete(error_buf, { force = true })
+  end
+  if vim.api.nvim_buf_is_valid(warning_buf) then
+    vim.api.nvim_buf_delete(warning_buf, { force = true })
+  end
+  if not ok then
+    error(err, 0)
+  end
+end)
+
 test("retro preset catalogs include hardware-flavored entries", function()
   assert_true(vim.tbl_contains(retroline.list_animations(), "retro_modem"), "retro_modem should be listed")
   assert_true(vim.tbl_contains(retroline.list_animations(), "retro_probe"), "retro_probe should be listed")

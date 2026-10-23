@@ -11,6 +11,9 @@
   <a href="https://github.com/valonmulolli/retroline.nvim">
     <img src="https://img.shields.io/badge/license-MIT-blue?style=flat" alt="MIT">
   </a>
+  <a href="https://github.com/valonmulolli/retroline.nvim/actions/workflows/test.yml">
+    <img src="https://github.com/valonmulolli/retroline.nvim/actions/workflows/test.yml/badge.svg" alt="CI">
+  </a>
 </p>
 
 ---
@@ -85,8 +88,6 @@ local retroline = require("retroline")
 retroline.setup({ statusline = { retro = true } })
 retroline.enable_statusline()
 ```
-
----
 
 ## Usage
 
@@ -228,7 +229,7 @@ retroline.add_diagnostic_animation("my_alert", {
   },
   diagnostic = {
     enabled = true,
-    scope = "buffer",      -- "buffer" | "workspace"
+    scope = "buffer",      -- "buffer" | "workspace" (loaded buffers)
     style = "full",        -- "minimal" | "compact" | "full"
     animate = true,
     animate_severities = { "ERROR", "WARN", "INFO", "HINT", "OK" },
